@@ -3,6 +3,7 @@ import { CustomConfigModule } from "./modules/config/config.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { TypeOrmConfig } from "./config/typeorm.config";
 import { UserModule } from "./modules/user/user.module";
+import { AuthModule } from "./modules/auth/auth.module";
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { HttpExceptionFilter } from "./common/Filters/exception.filter";
 import { ValidationPipe422 } from "./common/pipe/validation.pipe";
@@ -16,6 +17,7 @@ import { TransformerInterceptor } from "./common/interceptor/transformer.interce
 			inject: [TypeOrmConfig],
 		}),
 		UserModule,
+		AuthModule,
 	],
 	controllers: [],
 	providers: [
