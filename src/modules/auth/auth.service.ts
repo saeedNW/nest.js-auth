@@ -171,4 +171,37 @@ export class AuthService {
 			refreshToken,
 		};
 	}
+
+	/**
+	 * Clients' access token validation process
+	 * @param {string} token - Access token retrieved from client's request
+	 * @throws {UnauthorizedException} - In case of invalid token throw "Unauthorized Exception" error
+	 * @returns {Promise<UserEntity | never>} - Returns user's data or throw an error
+	 */
+	async validateAccessToken(token: string): Promise<UserEntity | never> {
+		try {
+			/** verify access token */
+			const payload = this.jwtService.verify<TTokensPayload>(token, {
+				secret: this.configService.get("Jwt.accessTokenSecret"),
+			});
+
+			/** proceed if the verified payload is an object and has a id property */
+			if (typeof payload === "object" && "id" in payload) {
+				/** retrieve user's data from database */
+				const user = await this.userRepository.findOneBy({ id: payload.id });
+
+				/** throw error if user was not found */
+				if (!user) {
+					throw new UnauthorizedException("login on your account ");
+				}
+
+				/** return user's data */
+				return user;
+			}
+
+			throw new UnauthorizedException("login on your account ");
+		} catch (error) {
+			throw new UnauthorizedException("login on your account ");
+		}
+	}
 }
