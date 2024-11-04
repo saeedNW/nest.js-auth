@@ -1,10 +1,18 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+	BadRequestException,
+	Injectable,
+	UnauthorizedException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserEntity } from "../user/entities/user.entity";
 import { Repository } from "typeorm";
 import { OTPEntity } from "../user/entities/otp.entity";
 import { SendOtpDto } from "./dto/send-otp.dto";
 import { randomInt } from "crypto";
+import { CheckOtpDto } from "./dto/check-otp.dto";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
+import { TTokensPayload } from "./types/token-payload.type";
 
 @Injectable()
 export class AuthService {
@@ -15,12 +23,20 @@ export class AuthService {
 
 		//* Define otp repository and its entity type
 		@InjectRepository(OTPEntity)
-		private otpRepository: Repository<OTPEntity>
+		private otpRepository: Repository<OTPEntity>,
+
+		//* Define a private service for using jwt and its service type
+		private jwtService: JwtService,
+
+		//* Define a private service for configs
+		private configService: ConfigService
 	) {}
 
 	/**
 	 * The process of sending the otp code
 	 * @param {SendOtpDto} otpDto - client phone number
+	 *
+	 * @returns {Promise<object} - Return on object contains a message and the otp code
 	 */
 	async sendOtp(otpDto: SendOtpDto): Promise<object> {
 		const { mobile } = otpDto;
@@ -39,9 +55,54 @@ export class AuthService {
 		/** create user's otp code */
 		const code: string = await this.createOtpCode(user);
 
+		//TODO: Add a condition to prevent sending the OTP code in production environment
 		return {
 			message: "OTP sent successfully",
 			code,
+		};
+	}
+
+	async checkOtp(otpDto: CheckOtpDto): Promise<object> {
+		const { mobile, code } = otpDto;
+
+		/** check if there is any user with this phone number */
+		let user: UserEntity | null = await this.userRepository.findOne({
+			where: { mobile },
+			relations: ["otp"],
+		});
+
+		/** throe error if user was not found */
+		if (!user) {
+			throw new UnauthorizedException("User was not found");
+		}
+
+		/** throw error if otp is invalid */
+		if (user?.otp?.code !== code) {
+			throw new UnauthorizedException("invalid OTP code");
+		}
+
+		/** throw error if OTP was expired */
+		if (user?.otp?.expires_in < new Date()) {
+			throw new UnauthorizedException("this code has been expired");
+		}
+
+		/** update user phone verification status */
+		if (!user.mobile_verify) {
+			await this.userRepository.update(
+				{ id: user.id },
+				{ mobile_verify: true }
+			);
+		}
+
+		const { accessToken, refreshToken } = this.createAccessToken({
+			id: user.id,
+			mobile,
+		});
+
+		return {
+			message: "Logged in successfully",
+			accessToken,
+			refreshToken,
 		};
 	}
 
@@ -81,5 +142,33 @@ export class AuthService {
 		await this.userRepository.save(user);
 
 		return code;
+	}
+
+	/**
+	 * Generates access and refresh tokens for user
+	 * @template TTokensPayload - The type of the payload required to generate tokens
+	 * @param {TTokensPayload} payload - The payload data used to generate the tokens
+	 * @returns {{ accessToken: string; refreshToken: string }} An object containing access and refresh tokens
+	 */
+	createAccessToken(payload: TTokensPayload): {
+		accessToken: string;
+		refreshToken: string;
+	} {
+		/** create user access token */
+		const accessToken: string = this.jwtService.sign(payload, {
+			secret: this.configService.get("Jwt.accessTokenSecret"),
+			expiresIn: "30d",
+		});
+
+		/** create user refresh token */
+		const refreshToken: string = this.jwtService.sign(payload, {
+			secret: this.configService.get("Jwt.refreshTokenSecret"),
+			expiresIn: "1y",
+		});
+
+		return {
+			accessToken,
+			refreshToken,
+		};
 	}
 }

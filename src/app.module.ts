@@ -8,6 +8,7 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { HttpExceptionFilter } from "./common/Filters/exception.filter";
 import { ValidationPipe422 } from "./common/pipe/validation.pipe";
 import { TransformerInterceptor } from "./common/interceptor/transformer.interceptor";
+import { JwtModule } from "@nestjs/jwt";
 
 @Module({
 	imports: [
@@ -18,6 +19,7 @@ import { TransformerInterceptor } from "./common/interceptor/transformer.interce
 		}),
 		UserModule,
 		AuthModule,
+		JwtModule,
 	],
 	controllers: [],
 	providers: [
