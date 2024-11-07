@@ -31,7 +31,7 @@ const DbConfig = registerAs(ConfigKeys.Db, () => ({
 	host: "localhost",
 	username: "postgres",
 	password: "root",
-	database: "auth-otp",
+	database: "nestjs-auth",
 }));
 
 //? To set up configuration in your NestJS application, start by creating a new module file to manage

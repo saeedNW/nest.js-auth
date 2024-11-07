@@ -22,15 +22,119 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+# nest.js-auth
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+The **nest.js-auth** project provides a hands-on example of implementing an authentication system using NestJS with TypeORM.
+It demonstrates practical approaches to setting up user authentication, authorization, and secure API access within a NestJS application,
+leveraging TypeORM for seamless integration with a relational database. TypeORM is used for defining and managing user and OTP entities,
+as well as handling database interactions, making it easier to maintain data consistency and scalability.
 
-## Project setup
+## Table of Content
+
+- [nest.js-auth](#nestjs-auth)
+  - [Table of Content](#table-of-content)
+  - [Prerequisites](#prerequisites)
+  - [Installation and Setup](#installation-and-setup)
+  - [Run Postgres and PgAdmin using docker](#run-postgres-and-pgadmin-using-docker)
+    - [Run PostgreSQL service](#run-postgresql-service)
+    - [Run PgAdmin service](#run-pgadmin-service)
+      - [Create a New PostgreSQL Server and database](#create-a-new-postgresql-server-and-database)
+  - [Compile and run the project](#compile-and-run-the-project)
+  - [Technologies Used](#technologies-used)
+  - [License](#license)
+  - [Contributors](#contributors)
+
+## Prerequisites
+
+Before running the project, make sure you have the following installed:
+
+- [Node.js](https://nodejs.org/)
+- [Typescript](https://www.typescriptlang.org/)
+- [NestJS](https://nestjs.com/)
+- [Docker](https://www.docker.com)
+- [PostgreSQL](https://www.postgresql.org/)
+- [pgAdmin](https://www.pgadmin.org/)
+
+## Installation and Setup
+
+In order to get this application up and running on your local machine, follow the
+steps below.
+
+1. Clone the repository from GitHub:
+
+   ```shell
+   git clone https://github.com/saeedNW/nest.js-auth.git
+   ```
+
+2. Navigate to the project directory:
+
+   ```shell
+   cd nest.js-auth
+   ```
+
+3. Install project dependencies:
+
+   ```shell
+   npm install
+   ```
+
+Note that the application default Listing port is `3000`.
+
+## Run Postgres and PgAdmin using docker
+
+To begin using this project, the first step is to install and run a **PostgreSQL** database. If you don't already have PostgreSQL installed, you can follow these instructions to set it up using Docker containers.
+
+### Run PostgreSQL service
+
+Using this command you can pull and run PostgreSQL database.
 
 ```bash
-$ npm install
+docker run -d \
+  --name postgres_container \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=root \
+  -p 5432:5432 \
+  postgres
 ```
+
+This command initiates a PostgreSQL container with username and password authentication (postgres/root).
+
+### Run PgAdmin service
+
+PgAdmin is the most popular and feature rich Open Source administration and development platform for PostgreSQL. Using this command you can pull and run PgAdmin.
+
+```bash
+docker run -d \
+  --name pgadmin_container \
+  -e PGADMIN_DEFAULT_EMAIL=admin@example.com \
+  -e PGADMIN_DEFAULT_PASSWORD=admin \
+  -p 8080:80 \
+  --link postgres_container:postgres \
+  dpage/pgadmin4
+```
+
+This command starts a pgAdmin container with management UI available at <http://localhost:8080>. Log in using the email and password you specified in the docker run command for pgAdmin (<admin@example.com>/admin).
+
+#### Create a New PostgreSQL Server and database
+
+To create a new PostgreSQL server in pgAdmin, follow these steps:
+
+- In the left sidebar, under "Servers", right-click on "Servers" and select "Create" > "Server..."
+- Fill in the following details:
+  - **Name:** Give your server a name (localhost).
+  - **Connection:** Fill in the following details:
+    - **Host name/address:** `postgres` (this is the name of the PostgreSQL container)
+    - **Port:** `5432`
+    - **Username:** The username you specified when running the PostgreSQL container
+    - **Password:** The password you specified when running the PostgreSQL container
+- Click on the "Save" button.
+
+Once the server is created, you’ll need to set up a database to enable the application’s connection.
+
+- In the left sidebar, under "Servers", Open the newly created database and right-click on "databases" and select "Create" > "database"
+- Fill in the following details:
+  - **Database:** Give your database a name (For this project the name should be nestjs-auth).
+- Click on the "Save" button.
 
 ## Compile and run the project
 
@@ -41,59 +145,34 @@ $ npm run start
 # watch mode
 $ npm run start:dev
 
+# build production
+$ npm run build
+
 # production mode
 $ npm run start:prod
 ```
 
-## Run tests
+## Technologies Used
 
-```bash
-# unit tests
-$ npm run test
+List of the major technologies and libraries used to build this application:
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- Node.js & NestJS
+- Typescript
+- PostgreSQL
+- TypeORM
+- Docker
 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## Contributors
+
+We would like to thank the following individuals who have contributed to the development of this application:
+
+![avatar](https://images.weserv.nl/?url=https://github.com/erfanyousefi.png?h=150&w=150&fit=cover&mask=circle&maxage=5d)
+‎ ‎ ‎ ![avatar](https://images.weserv.nl/?url=https://github.com/saeedNW.png?h=150&w=150&fit=cover&mask=circle&maxage=5d)
+
+[**Erfan Yousefi - Supervisor and instructor of the nest.js programming course**](https://github.com/erfanyousefi/)
+
+[**Saeed Norouzi - Back-end Developer**](https://github.com/saeedNW)
