@@ -1,5 +1,6 @@
 import {
 	BadRequestException,
+	ConflictException,
 	Injectable,
 	UnauthorizedException,
 } from "@nestjs/common";
@@ -13,6 +14,9 @@ import { CheckOtpDto } from "./dto/check-otp.dto";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { TTokensPayload } from "./types/token-payload.type";
+import { SignupDto } from "./dto/sign-up.dto";
+import { hashSync, genSaltSync, compareSync } from "bcrypt";
+import { LoginDto } from "./dto/login.dto";
 
 @Injectable()
 export class AuthService {
@@ -203,5 +207,85 @@ export class AuthService {
 		} catch (error) {
 			throw new UnauthorizedException("login on your account ");
 		}
+	}
+
+	/**
+	 * User signup process using mobile and password
+	 * @param {SignupDto} signupDto - User's data
+	 */
+	async signup(signupDto: SignupDto) {
+		/** destructure data sent by client */
+		const { firstName, lastName, password, mobile } = signupDto;
+
+		/** check for unique phone */
+		await this.checkMobile(mobile);
+
+		/** hash user password */
+		let hashedPassword: string = this.hashPassword(password);
+
+		/** create user */
+		const user = this.userRepository.create({
+			firstName,
+			lastName,
+			mobile,
+			password: hashedPassword,
+			mobile_verify: false,
+		});
+
+		/** save user data in database */
+		await this.userRepository.save(user);
+
+		return "user signup successfully";
+	}
+
+	/**
+	 * User login process using mobile and password
+	 * @param loginDto user's login data
+	 */
+	async login(loginDto: LoginDto) {
+		/** destructure data sent by client */
+		const { mobile, password } = loginDto;
+
+		/** check for user existence and throw error */
+		const user = await this.userRepository.findOneBy({ mobile });
+		if (!user) {
+			throw new UnauthorizedException("username or password is incorrect");
+		}
+
+		/** throw error if password was incorrect */
+		if (!compareSync(password, user.password)) {
+			throw new UnauthorizedException("username or password is incorrect");
+		}
+
+		/** create user's access and refresh tokens */
+		const { accessToken, refreshToken } = this.createAccessToken({
+			mobile: user.mobile,
+			id: user.id,
+		});
+
+		return {
+			accessToken,
+			refreshToken,
+		};
+	}
+
+	/**
+	 * unique phone number validation
+	 * @param {string} mobile - user's phone number
+	 */
+	async checkMobile(mobile: string) {
+		/** check if there is a user with this phone and throw error */
+		const user = await this.userRepository.findOneBy({ mobile });
+		if (user) throw new ConflictException("mobile number is already exist");
+	}
+
+	/**
+	 * hash user's chosen password
+	 * @param {string} password - user's password
+	 * @returns
+	 */
+	hashPassword(password: string) {
+		const salt = genSaltSync(10);
+		return hashSync(password, salt);
 	}
 }

@@ -18,12 +18,10 @@ export class UserEntity {
 	firstName: string;
 	@Column({ nullable: true })
 	lastName: string;
-	@Column({ nullable: true })
-	email: string;
+	@Column({ unique: true })
+	mobile: string;
 	@Column({ nullable: true })
 	password: string;
-	@Column({ nullable: true })
-	mobile: string;
 	@Column({ default: false })
 	mobile_verify: boolean;
 	@CreateDateColumn()
